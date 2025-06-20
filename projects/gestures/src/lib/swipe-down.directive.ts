@@ -16,18 +16,20 @@ export class SwipeDownDirective implements OnInit {
   /** Whether to set `will-change: transform` for smooth GPU animation (default: true) */
   @Input() willChange = true;
 
+  /** If set, only allow swipe when gesture starts on/inside this element */
+  @Input() swipeStartTarget?: ElementRef | HTMLElement;
+
   /**
-   * If true, disables swipe on desktop or hybrid devices.
-   * Swipe will only work on touch-only/mobile devices.
-   * (default: false)
+   * Optional: Maximum viewport width (px) where swipe is enabled.
+   * If set, swipe is disabled when viewport >= this value.
+   * If not set, swipe is always enabled.
    */
-  @Input() disableOnDesktop = false;
+  @Input() desktopBreakpoint?: number;
 
   private startY = 0;
   private currentY = 0;
   private dragging = false;
   private animating = false;
-  private swipeDisabled = false;
 
   constructor(private el: ElementRef, private renderer: Renderer2) {}
 
@@ -35,6 +37,7 @@ export class SwipeDownDirective implements OnInit {
     if (this.willChange) {
       this.renderer.setStyle(this.el.nativeElement, 'will-change', 'transform');
     }
+    // Prevent pull-to-refresh inside swipe directive
     this.renderer.setStyle(this.el.nativeElement, 'touch-action', 'none');
     this.renderer.setStyle(this.el.nativeElement, '-webkit-user-select', 'none');
     this.renderer.setStyle(this.el.nativeElement, 'user-select', 'none');
@@ -42,13 +45,19 @@ export class SwipeDownDirective implements OnInit {
 
   @HostListener('touchstart', ['$event'])
   onTouchStart(event: TouchEvent) {
-    // If disabled on desktop, check here
-    if (this.disableOnDesktop && this.isDesktopLikeDevice()) {
-      this.swipeDisabled = true;
-      return;
-    } else {
-      this.swipeDisabled = false;
+    if (this.swipeStartTarget) {
+      const swipeElem = this.swipeStartTarget instanceof ElementRef
+        ? this.swipeStartTarget.nativeElement
+        : this.swipeStartTarget;
+      // Only start swipe if the event target is inside the target element
+      const eventTarget = event.target as Node;
+      if (eventTarget && !swipeElem.contains(eventTarget)) {
+        return; // Ignore swipe from outside the header
+      }
     }
+
+    // ...rest of your existing swipe start logic...
+    if (!this.isSwipeEnabled()) return;
     if (event.touches.length !== 1) return;
     this.dragging = true;
     this.animating = false;
@@ -59,7 +68,6 @@ export class SwipeDownDirective implements OnInit {
 
   @HostListener('touchmove', ['$event'])
   onTouchMove(event: TouchEvent) {
-    if (this.swipeDisabled) return;
     if (!this.dragging || event.touches.length !== 1) return;
     const touchY = event.touches[0].clientY;
     this.currentY = touchY - this.startY;
@@ -72,10 +80,8 @@ export class SwipeDownDirective implements OnInit {
 
   @HostListener('touchend')
   onTouchEnd() {
-    if (this.swipeDisabled) return;
     if (!this.dragging) return;
     this.dragging = false;
-    // Decide close or reset
     if (this.currentY > this.threshold) {
       this.animateOut();
       this.swipeYClose.emit();
@@ -94,12 +100,11 @@ export class SwipeDownDirective implements OnInit {
 
   private animateBack() {
     this.animating = true;
-    // Set transition to none and commit current state
+    // Instantly move to current position (no transition)
     this.setTransition('none');
-    this.setTranslateY(this.currentY); // <--- set to current position
-    // Force a browser reflow
-    void (this.el.nativeElement as HTMLElement).offsetHeight;
-    // Now set transition and animate to 0
+    this.setTranslateY(this.currentY);
+    void (this.el.nativeElement as HTMLElement).offsetHeight; // Force reflow
+    // Animate to 0
     this.setTransition('0.35s cubic-bezier(.23,1.01,.32,1)');
     this.setTranslateY(0);
     setTimeout(() => {
@@ -108,9 +113,13 @@ export class SwipeDownDirective implements OnInit {
     }, 350);
   }
 
-
   private animateOut() {
     this.animating = true;
+    // Instantly move to current position (no transition)
+    this.setTransition('none');
+    this.setTranslateY(this.currentY);
+    void (this.el.nativeElement as HTMLElement).offsetHeight; // Force reflow
+    // Animate offscreen
     this.setTransition('0.25s cubic-bezier(.23,1.01,.32,1)');
     this.setTranslateY(window.innerHeight);
     setTimeout(() => {
@@ -119,15 +128,12 @@ export class SwipeDownDirective implements OnInit {
     }, 250);
   }
 
-  /** Heuristic to detect desktop/hybrid devices */
-  private isDesktopLikeDevice(): boolean {
-    // Not perfect but effective for most cases:
-    const touchPoints = navigator.maxTouchPoints || 0;
-    const userAgent = navigator.userAgent || '';
-    // Consider "desktop" if no touch, or (large screen and not iPad/tablet)
-    const isWide = window.innerWidth > 1024;
-    const isWindows = userAgent.includes('Windows');
-    const isMac = userAgent.includes('Macintosh');
-    return touchPoints === 0 || ((isWindows || isMac) && isWide);
+  /**
+   * Returns true if swipe is enabled based on optional desktopBreakpoint.
+   * If desktopBreakpoint is undefined, swipe is always enabled.
+   */
+  private isSwipeEnabled(): boolean {
+    return !(this.desktopBreakpoint !== undefined && window.innerWidth >= this.desktopBreakpoint);
+
   }
 }

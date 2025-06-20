@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { SwipeDownDirective } from 'gestures';
@@ -11,6 +11,8 @@ import { SwipeDownDirective } from 'gestures';
 })
 export class App {
   protected title = 'demo';
+
+  @ViewChild('header') headerRef!: ElementRef;
 
   log() {
     console.log('swipy close')

@@ -1,2 +1,20 @@
 <router-outlet />
-<div class="dialog" ngSwipeDown [threshold]="100" [disableOnDesktop]="true" [willChange]="true" (swipeYClose)="log()">test</div>
+<!--<div class="dialog" ngSwipeDown [threshold]="100" [desktopBreakpoint]="1024" [willChange]="true" (swipeYClose)="log()">test</div>-->
+
+<div class="dialog-container" ngSwipeDown [swipeStartTarget]="headerRef" [threshold]="100" [desktopBreakpoint]="1024" [willChange]="true" (swipeYClose)="log()">
+  <div class="dialog-header" #header>
+    <span class="dialog-title">This is the title and it can be fairly long</span>
+    <button class="dialog-close" aria-label="Close">&times;</button>
+  </div>
+  <div class="dialog-content">
+    <p> dialog works!</p>
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sed enim scelerisque, rhoncus dui sed, pretium turpis. Nulla porta velit et lacus lacinia euismod. Sed non consectetur lacus. Morbi bibendum dui a urna laoreet vestibulum. Sed feugiat nunc libero, ac varius sapien lobortis ac. Nulla facilisi.<br>
+      Suspendisse auctor libero sed commodo rhoncus. Duis placerat sapien et magna tempus, non dapibus nisi imperdiet. Vestibulum quis nibh tellus. Proin id lorem at arcu vehicula blandit. Aliquam sed odio laoreet, faucibus orci sit amet, condimentum nisl. Phasellus vehicula cursus ullamcorper. Donec auctor ullamcorper orci, at condimentum nulla convallis ut. Nulla augue felis, facilisis sit amet placerat id, fermentum ut nulla. Nunc turpis turpis, venenatis at est eget, rutrum imperdiet purus. Maecenas euismod quis risus eu aliquam. In bibendum, massa ac fermentum dictum, eros nunc volutpat nunc, quis tincidunt lorem ex ut lectus. Cras viverra metus non quam dictum, nec pretium augue luctus. Phasellus ornare sapien ante, vel mollis lacus pretium eu.
+    </p>
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sed enim scelerisque, rhoncus dui sed. pretium turpis. Nulla porta velit et lacus lacinia euismod. Sed non consectetur lacus. Morbi bibendum dui a urna laoreet vestibulum. Sed feugiat nunc libero, ac varius sapien lobortis ac. Nulla facilisi.<br>
+      Suspendisse auctor libero sed commodo rhoncus. Duis placerat sapien et magna tempus, non dapibus nisi imperdiet. Vestibulum quis nibh tellus. Proin id lorem at arcu vehicula blandit. Aliquam sed odio laoreet, faucibus orci sit amet, condimentum nisl. Phasellus vehicula cursus ullamcorper. Donec auctor ullamcorper orci, at condimentum nulla convallis ut. Nulla augue felis, facilisis sit amet placerat id, fermentum ut nulla. Nunc turpis turpis, venenatis at est eget, rutrum imperdiet purus. Maecenas euismod quis risus eu aliquam. In bibendum, massa ac fermentum dictum, eros nunc volutpat nunc, quis tincidunt lorem ex ut lectus. Cras viverra metus non quam dictum, nec pretium augue luctus. Phasellus ornare sapien ante, vel mollis lacus pretium eu.
+    </p>
+  </div>
+</div>
